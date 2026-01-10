@@ -29,6 +29,8 @@
             --shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
             --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.1);
             --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --warning: #f59e0b;
+            --warning-light: #fbbf24;
         }
         
         body {
@@ -91,6 +93,15 @@
             margin: 0 auto 12px;
         }
         
+        .header-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
         .stats {
             display: flex;
             justify-content: center;
@@ -121,6 +132,65 @@
             color: var(--gray);
             font-size: 0.75rem;
             margin-top: 4px;
+        }
+        
+        .backup-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-backup {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn-backup-download {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .btn-backup-download:hover {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);
+        }
+        
+        .btn-backup-upload {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white;
+        }
+        
+        .btn-backup-upload:hover {
+            background: linear-gradient(135deg, var(--warning-light), var(--warning));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
         }
         
         /* Tab Navigation */
@@ -770,6 +840,20 @@
             padding: 16px;
         }
         
+        .backup-info {
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+        }
+        
+        .backup-info i {
+            color: var(--primary-light);
+            margin-right: 6px;
+        }
+        
         footer {
             text-align: center;
             padding: 15px;
@@ -777,6 +861,59 @@
             font-size: 0.75rem;
             border-top: 1px solid var(--glass-border);
             margin-top: 15px;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        
+        .toast-success .toast-icon {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent);
+        }
+        
+        .toast-warning .toast-icon {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        .toast-error .toast-icon {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .toast-content {
+            font-size: 0.85rem;
         }
         
         /* Responsive adjustments */
@@ -813,6 +950,20 @@
             .tab-navigation {
                 flex-direction: column;
             }
+            
+            .header-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .backup-buttons {
+                width: 100%;
+            }
+            
+            .toast {
+                left: 20px;
+                right: 20px;
+            }
         }
     </style>
 </head>
@@ -827,18 +978,32 @@
             </div>
             <p class="subtitle">Award management system for tracking categories and winners</p>
             
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-number" id="total-categories">0</div>
-                    <div class="stat-label">Categories</div>
+            <div class="header-controls">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-categories">0</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-subcategories">0</div>
+                        <div class="stat-label">Sub-Categories</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-winners">0</div>
+                        <div class="stat-label">Winners</div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="total-subcategories">0</div>
-                    <div class="stat-label">Sub-Categories</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="total-winners">0</div>
-                    <div class="stat-label">Winners</div>
+                
+                <div class="backup-buttons">
+                    <button class="btn-backup btn-backup-download" id="download-backup-btn">
+                        <i class="fas fa-download"></i> Download Backup
+                    </button>
+                    <div class="file-input-wrapper">
+                        <button class="btn-backup btn-backup-upload" id="upload-backup-btn">
+                            <i class="fas fa-upload"></i> Upload Backup
+                        </button>
+                        <input type="file" id="backup-file-input" class="file-input" accept=".json" />
+                    </div>
                 </div>
             </div>
         </header>
@@ -975,8 +1140,49 @@
             </div>
         </div>
         
+        <!-- Modal for backup info -->
+        <div class="modal-overlay" id="backup-modal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3><i class="fas fa-database"></i> Backup & Restore</h3>
+                    <button class="close-modal" id="close-backup-modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="backup-info">
+                        <p><i class="fas fa-info-circle"></i> Backups are saved as JSON files. You can download a backup to save your data or upload a previously saved backup to restore it.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="backup-filename">
+                            <i class="fas fa-file-export"></i> Backup Filename
+                        </label>
+                        <input type="text" id="backup-filename" class="form-input" value="trophy-cabinet-backup.json" placeholder="Enter backup filename">
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary btn-full" id="confirm-download-backup-btn">
+                            <i class="fas fa-download"></i> Download Backup
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-full" id="close-backup-btn">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Toast Notification -->
+        <div class="toast" id="toast">
+            <div class="toast-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="toast-content" id="toast-content">Backup downloaded successfully!</div>
+        </div>
+        
         <footer>
-            <p>Trophy Cabinet &copy; <span id="current-year">2023</span> | All data is stored locally in your browser</p>
+            <p>Trophy Cabinet &copy; <span id="current-year">2023</span> | All data is stored locally in your browser | Backup your data regularly</p>
         </footer>
     </div>
     
@@ -1082,7 +1288,9 @@
                 }
             ],
             nextCategoryId: 4,
-            nextSubCategoryId: 306
+            nextSubCategoryId: 306,
+            backupVersion: "1.0",
+            lastBackupDate: null
         };
         
         // DOM Elements
@@ -1093,6 +1301,7 @@
         const addCategoryBtn = document.getElementById('add-category-btn');
         const categoryModal = document.getElementById('category-modal');
         const winnersModal = document.getElementById('winners-modal');
+        const backupModal = document.getElementById('backup-modal');
         const closeModalBtns = document.querySelectorAll('.close-modal');
         const saveCategoryBtn = document.getElementById('save-category-btn');
         const cancelCategoryBtn = document.getElementById('cancel-category-btn');
@@ -1106,6 +1315,15 @@
         const selectedSubcategoryDisplay = document.getElementById('selected-subcategory-display');
         const modalTitle = document.getElementById('modal-title');
         const winnersModalTitle = document.getElementById('winners-modal-title');
+        const downloadBackupBtn = document.getElementById('download-backup-btn');
+        const uploadBackupBtn = document.getElementById('upload-backup-btn');
+        const backupFileInput = document.getElementById('backup-file-input');
+        const confirmDownloadBackupBtn = document.getElementById('confirm-download-backup-btn');
+        const closeBackupBtn = document.getElementById('close-backup-btn');
+        const backupFilenameInput = document.getElementById('backup-filename');
+        const closeBackupModal = document.getElementById('close-backup-modal');
+        const toast = document.getElementById('toast');
+        const toastContent = document.getElementById('toast-content');
         
         // Tab elements
         const manageTabBtn = document.getElementById('manage-tab');
@@ -1128,7 +1346,18 @@
         function loadData() {
             const savedData = localStorage.getItem('trophyCabinet');
             if (savedData) {
-                trophyCabinet = JSON.parse(savedData);
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    trophyCabinet = parsedData;
+                    
+                    // Ensure backup version and date are set
+                    if (!trophyCabinet.backupVersion) {
+                        trophyCabinet.backupVersion = "1.0";
+                    }
+                } catch (error) {
+                    console.error("Error parsing saved data:", error);
+                    showToast("Error loading saved data. Using default data.", "error");
+                }
             }
             updateStats();
             renderCategories();
@@ -1137,6 +1366,7 @@
         
         // Save data to localStorage
         function saveData() {
+            trophyCabinet.lastBackupDate = new Date().toISOString();
             localStorage.setItem('trophyCabinet', JSON.stringify(trophyCabinet));
             updateStats();
             renderAllWinners();
@@ -1570,6 +1800,132 @@
             editingSubCategoryId = null;
         }
         
+        // Open backup modal
+        function openBackupModal() {
+            backupModal.classList.add('active');
+        }
+        
+        // Close backup modal
+        function closeBackupModal() {
+            backupModal.classList.remove('active');
+        }
+        
+        // Download backup
+        function downloadBackup() {
+            const filename = backupFilenameInput.value.trim() || 'trophy-cabinet-backup.json';
+            
+            // Update last backup date
+            trophyCabinet.lastBackupDate = new Date().toISOString();
+            
+            // Create backup data
+            const backupData = {
+                ...trophyCabinet,
+                exportDate: new Date().toISOString(),
+                exportVersion: "1.0"
+            };
+            
+            const dataStr = JSON.stringify(backupData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            // Create download link
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(dataBlob);
+            downloadLink.download = filename;
+            downloadLink.click();
+            
+            // Clean up
+            URL.revokeObjectURL(downloadLink.href);
+            
+            showToast(`Backup downloaded as ${filename}`, "success");
+            closeBackupModal();
+        }
+        
+        // Upload backup
+        function uploadBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check file extension
+            if (!file.name.endsWith('.json')) {
+                showToast("Please select a JSON file", "error");
+                return;
+            }
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    
+                    // Validate backup data structure
+                    if (!backupData.categories || !Array.isArray(backupData.categories)) {
+                        showToast("Invalid backup file format", "error");
+                        return;
+                    }
+                    
+                    // Ask for confirmation
+                    if (confirm('This will replace all current data with the backup. Are you sure?')) {
+                        // Restore data
+                        trophyCabinet = backupData;
+                        
+                        // Ensure IDs are properly set
+                        if (!trophyCabinet.nextCategoryId) {
+                            trophyCabinet.nextCategoryId = Math.max(...trophyCabinet.categories.map(c => c.id)) + 1;
+                        }
+                        
+                        if (!trophyCabinet.nextSubCategoryId) {
+                            let maxSubCategoryId = 0;
+                            trophyCabinet.categories.forEach(category => {
+                                category.subCategories.forEach(subCategory => {
+                                    if (subCategory.id > maxSubCategoryId) {
+                                        maxSubCategoryId = subCategory.id;
+                                    }
+                                });
+                            });
+                            trophyCabinet.nextSubCategoryId = maxSubCategoryId + 1;
+                        }
+                        
+                        // Save and refresh
+                        saveData();
+                        renderCategories();
+                        renderAllWinners();
+                        
+                        showToast("Backup restored successfully!", "success");
+                    }
+                } catch (error) {
+                    console.error("Error parsing backup file:", error);
+                    showToast("Error reading backup file", "error");
+                }
+                
+                // Reset file input
+                event.target.value = '';
+            };
+            
+            reader.onerror = function() {
+                showToast("Error reading file", "error");
+                event.target.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // Show toast notification
+        function showToast(message, type = "success") {
+            toastContent.textContent = message;
+            
+            // Set toast type
+            toast.className = 'toast';
+            toast.classList.add(`toast-${type}`);
+            
+            // Show toast
+            toast.classList.add('show');
+            
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
         // Switch between tabs
         function switchTab(tabName) {
             // Update tab buttons
@@ -1609,6 +1965,21 @@
         
         cancelWinnersBtn.addEventListener('click', closeWinnersModal);
         
+        // Backup functionality
+        downloadBackupBtn.addEventListener('click', openBackupModal);
+        
+        // Upload backup button triggers file input
+        uploadBackupBtn.addEventListener('click', () => {
+            backupFileInput.click();
+        });
+        
+        backupFileInput.addEventListener('change', uploadBackup);
+        
+        confirmDownloadBackupBtn.addEventListener('click', downloadBackup);
+        
+        closeBackupBtn.addEventListener('click', closeBackupModal);
+        closeBackupModal.addEventListener('click', closeBackupModal);
+        
         // Tab switching
         manageTabBtn.addEventListener('click', () => switchTab('manage'));
         winnersTabBtn.addEventListener('click', () => switchTab('winners'));
@@ -1618,6 +1989,7 @@
             btn.addEventListener('click', () => {
                 closeCategoryModal();
                 closeWinnersModal();
+                closeBackupModal();
             });
         });
         
@@ -1628,6 +2000,9 @@
             }
             if (e.target === winnersModal) {
                 closeWinnersModal();
+            }
+            if (e.target === backupModal) {
+                closeBackupModal();
             }
         });
         
