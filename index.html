@@ -1396,9 +1396,11 @@
             
             if (trophyCabinet.categories.length === 0) {
                 categoriesContainer.appendChild(emptyCategories);
-                emptyCategories.classList.remove('hidden');
+                emptyCategories.style.display = 'block';
                 return;
             }
+            
+            emptyCategories.style.display = 'none';
             
             // Create a list for all categories (each in separate line)
             const categoriesList = document.createElement('div');
@@ -1518,8 +1520,11 @@
             
             if (trophyCabinet.categories.length === 0) {
                 allWinnersContainer.appendChild(emptyAllWinners);
+                emptyAllWinners.style.display = 'block';
                 return;
             }
+            
+            emptyAllWinners.style.display = 'none';
             
             let hasWinners = false;
             
@@ -1589,6 +1594,7 @@
             
             if (!hasWinners) {
                 allWinnersContainer.appendChild(emptyAllWinners);
+                emptyAllWinners.style.display = 'block';
             }
         }
         
@@ -1949,7 +1955,12 @@
         }
         
         // Event Listeners
-        addCategoryBtn.addEventListener('click', openCategoryModal);
+        // FIXED: Added event listener for "New Category" button
+        if (addCategoryBtn) {
+            addCategoryBtn.addEventListener('click', openCategoryModal);
+        } else {
+            console.error("Add Category button not found!");
+        }
         
         saveCategoryBtn.addEventListener('click', () => {
             if (editingCategoryId) {
@@ -1980,9 +1991,20 @@
         closeBackupBtn.addEventListener('click', closeBackupModal);
         closeBackupModal.addEventListener('click', closeBackupModal);
         
-        // Tab switching
-        manageTabBtn.addEventListener('click', () => switchTab('manage'));
-        winnersTabBtn.addEventListener('click', () => switchTab('winners'));
+        // Tab switching - FIXED: Added proper event listeners for tab switching
+        if (manageTabBtn && winnersTabBtn) {
+            manageTabBtn.addEventListener('click', () => {
+                console.log("Manage tab clicked");
+                switchTab('manage');
+            });
+            
+            winnersTabBtn.addEventListener('click', () => {
+                console.log("Winners tab clicked");
+                switchTab('winners');
+            });
+        } else {
+            console.error("Tab buttons not found!");
+        }
         
         // Close modals when clicking close buttons
         closeModalBtns.forEach(btn => {
