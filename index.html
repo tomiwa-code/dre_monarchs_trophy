@@ -90,6 +90,13 @@
             max-width: 500px;
             margin: 0 auto 12px;
         }
+
+        .backup-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
         
         .stats {
             display: flex;
@@ -827,6 +834,16 @@
             </div>
             <p class="subtitle">Award management system for tracking categories and winners</p>
             
+            <div class="backup-controls">
+                <button class="btn btn-secondary" id="download-backup-btn">
+                    <i class="fas fa-download"></i> Download Backup
+                </button>
+                <button class="btn btn-secondary" id="upload-backup-trigger">
+                    <i class="fas fa-upload"></i> Upload Backup
+                </button>
+                <input type="file" id="backup-input" style="display: none;" accept=".json">
+            </div>
+
             <div class="stats">
                 <div class="stat-card">
                     <div class="stat-number" id="total-categories">0</div>
@@ -843,7 +860,6 @@
             </div>
         </header>
         
-        <!-- Tab Navigation -->
         <div class="tab-navigation">
             <button class="tab-btn active" id="manage-tab">
                 <i class="fas fa-cogs"></i> Manage Categories
@@ -853,10 +869,8 @@
             </button>
         </div>
         
-        <!-- Manage Categories Tab -->
         <div class="tab-content active" id="manage-tab-content">
             <div class="app-layout">
-                <!-- Categories Card -->
                 <div class="card">
                     <div class="card-header">
                         <h2><i class="fas fa-folder-open"></i> Categories</h2>
@@ -866,7 +880,6 @@
                     </div>
                     <div class="card-body">
                         <div class="categories-container" id="categories-container">
-                            <!-- Categories will be dynamically added here -->
                             <div class="empty-state" id="empty-categories">
                                 <div class="empty-icon">
                                     <i class="fas fa-inbox"></i>
@@ -880,10 +893,8 @@
             </div>
         </div>
         
-        <!-- All Winners Tab -->
         <div class="tab-content" id="winners-tab-content">
             <div class="all-winners-grid" id="all-winners-container">
-                <!-- All winners will be dynamically added here -->
                 <div class="empty-state" id="empty-all-winners">
                     <div class="empty-icon">
                         <i class="fas fa-trophy"></i>
@@ -894,7 +905,6 @@
             </div>
         </div>
         
-        <!-- Modal for adding/editing categories -->
         <div class="modal-overlay" id="category-modal">
             <div class="modal">
                 <div class="modal-header">
@@ -932,7 +942,6 @@
             </div>
         </div>
         
-        <!-- Modal for managing winners -->
         <div class="modal-overlay" id="winners-modal">
             <div class="modal">
                 <div class="modal-header">
@@ -1117,6 +1126,11 @@
         const totalCategoriesEl = document.getElementById('total-categories');
         const totalSubcategoriesEl = document.getElementById('total-subcategories');
         const totalWinnersEl = document.getElementById('total-winners');
+
+        // Backup elements
+        const downloadBackupBtn = document.getElementById('download-backup-btn');
+        const uploadBackupTrigger = document.getElementById('upload-backup-trigger');
+        const backupInput = document.getElementById('backup-input');
         
         // State variables
         let selectedCategoryId = null;
@@ -1309,8 +1323,7 @@
                         <h3><i class="fas fa-folder-open"></i> ${category.name}</h3>
                     </div>
                     <div class="category-winners-body" id="category-body-${category.id}">
-                        <!-- Subcategories will be added here -->
-                    </div>
+                        </div>
                 `;
                 
                 // Add subcategories
@@ -1328,8 +1341,7 @@
                             <div class="winners-count">${subCategory.winners.length}</div>
                         </div>
                         <div class="winners-grid-container" id="winners-grid-${subCategory.id}">
-                            <!-- Winners will be added here -->
-                        </div>
+                            </div>
                     `;
                     
                     // Add winners in grid
@@ -1591,6 +1603,47 @@
                 renderAllWinners();
             }
         }
+
+        // Backup Functions
+        function downloadBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trophyCabinet, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "trophy_cabinet_backup.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = JSON.parse(e.target.result);
+                    // Simple validation: check if 'categories' exists
+                    if (content && content.categories && Array.isArray(content.categories)) {
+                        if (confirm('Are you sure you want to restore this backup? This will overwrite your current data.')) {
+                            trophyCabinet = content;
+                            saveData();
+                            renderCategories();
+                            renderAllWinners();
+                            updateStats();
+                            alert('Backup restored successfully!');
+                        }
+                    } else {
+                        alert('Invalid backup file format.');
+                    }
+                } catch (err) {
+                    alert('Error reading backup file.');
+                }
+                // Reset the input so the same file can be uploaded again if needed
+                backupInput.value = '';
+            };
+            reader.readAsText(file);
+        }
         
         // Event Listeners
         addCategoryBtn.addEventListener('click', openCategoryModal);
@@ -1612,6 +1665,11 @@
         // Tab switching
         manageTabBtn.addEventListener('click', () => switchTab('manage'));
         winnersTabBtn.addEventListener('click', () => switchTab('winners'));
+
+        // Backup events
+        downloadBackupBtn.addEventListener('click', downloadBackup);
+        uploadBackupTrigger.addEventListener('click', () => backupInput.click());
+        backupInput.addEventListener('change', handleFileUpload);
         
         // Close modals when clicking close buttons
         closeModalBtns.forEach(btn => {
